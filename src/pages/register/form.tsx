@@ -72,7 +72,7 @@ const RegisterForm = (props: any) => {
   }
   return (
     <Fragment>
-      <Form onSubmit={handleSubmit}>
+      <Form className="register-form-box" onSubmit={handleSubmit}>
         <Item>
           {
             getFieldDecorator('nickname', {

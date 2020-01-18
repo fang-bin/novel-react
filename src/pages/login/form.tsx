@@ -24,7 +24,7 @@ const LoginForm = (props: any) => {
     callback();
   });
   return (
-    <Form>
+    <Form className="login-form-box">
       <Item>
         {
           getFieldDecorator('account', {
