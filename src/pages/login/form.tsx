@@ -1,11 +1,12 @@
 import './form.less';
 import React from 'react';
+import fetch from '../../fetch';
 import { Form, Input, Icon, Checkbox, Button, } from 'antd';
 const { Item, } = Form;
 
 const LoginForm = (props: any) => {
   const {
-    // form,
+    form,
     form: {
       getFieldDecorator,
       getFieldsError,
@@ -23,8 +24,24 @@ const LoginForm = (props: any) => {
     if (value && !/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/.test(value)) return callback(`${txt}不符合规范`);
     callback();
   });
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    form.validateFields((err: any, values: Object) => {
+      if (!err) {
+        console.log(values);
+      }
+      fetch({
+        url: '/api/user/login',
+        body: values,
+        method: 'post',
+      })
+        .then(res => {
+          console.log(res);
+        })
+    })
+  }
   return (
-    <Form className="login-form-box">
+    <Form className="login-form-box" onSubmit={handleSubmit}>
       <Item>
         {
           getFieldDecorator('account', {
