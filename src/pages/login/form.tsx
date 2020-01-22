@@ -27,8 +27,9 @@ const LoginForm = (props: any) => {
   const handleSubmit = (e: any) => {
     e.preventDefault();
     form.validateFields((err: any, values: Object) => {
-      if (!err) {
+      if (err) {
         console.log(values);
+        return;
       }
       fetch({
         url: '/api/user/login',

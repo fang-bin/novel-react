@@ -54,7 +54,7 @@ export default ({
         }else {
           return Promise.reject(json);
         }
-      });
+      })
   }
   const _tokenFetch = async (tokenUrl: string) => {
     return tokenUrl;
