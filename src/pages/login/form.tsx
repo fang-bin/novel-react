@@ -1,7 +1,7 @@
 import './form.less';
 import React from 'react';
 import fetch from '../../fetch';
-import { Form, Input, Icon, Checkbox, Button, } from 'antd';
+import { Form, Input, Icon, Checkbox, Button, message, } from 'antd';
 const { Item, } = Form;
 
 const LoginForm = (props: any) => {
@@ -37,9 +37,21 @@ const LoginForm = (props: any) => {
         method: 'post',
       })
         .then(res => {
-          console.log(res);
+          if (res.data && res.data === true) {
+            message.success('登录成功~');
+          }
         })
-    })
+        .catch(err => {
+          const { status, name, } = err;
+          if (status === 403 && name === 'NOT_USER') {
+            message.error('用户不存在~');
+          } else if (status === 403 && name === 'PASSWORD_ERROR') {
+            message.error('密码不正确~');
+          } else {
+            message.error('服务器开小差了，请稍后重试~');
+          }
+        });
+    });
   }
   return (
     <Form className="login-form-box" onSubmit={handleSubmit}>
