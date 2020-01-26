@@ -2,7 +2,14 @@ import './form.less';
 import React from 'react';
 import fetch from '../../fetch';
 import { Form, Input, Icon, Checkbox, Button, message, } from 'antd';
+const JSEncrypt = require("jsencrypt");
+const encrypt = new JSEncrypt.JSEncrypt();
 const { Item, } = Form;
+interface SubmitType {
+  account: string;
+  password: string;
+  remember: boolean;
+}
 
 const LoginForm = (props: any) => {
   const {
@@ -26,30 +33,46 @@ const LoginForm = (props: any) => {
   });
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    form.validateFields((err: any, values: Object) => {
+    form.validateFields((err: any, values: SubmitType) => {
       if (err) {
         console.log(values);
         return;
       }
       fetch({
-        url: '/api/user/login',
-        body: values,
-        method: 'post',
+        url: '/api/user/key',
+        body: {},
+        method: 'get',
       })
         .then(res => {
-          if (res.data && res.data === true) {
-            message.success('登录成功~');
-          }
+          const { data, } = res;
+          encrypt.setPublicKey(data);
+          const encrypted = encrypt.encrypt(values.password);
+          fetch({
+            url: '/api/user/login',
+            body: {
+              ...values,
+              password: encrypted,
+            },
+            method: 'post',
+          })
+            .then(res => {
+              if (res.data && res.data === true) {
+                message.success('登录成功~');
+              }
+            })
+            .catch(err => {
+              const { status, name, } = err;
+              if (status === 403 && name === 'NOT_USER') {
+                message.error('用户不存在~');
+              } else if (status === 403 && name === 'PASSWORD_ERROR') {
+                message.error('密码不正确~');
+              } else {
+                message.error('服务器开小差了，请稍后重试~');
+              }
+            });
         })
         .catch(err => {
-          const { status, name, } = err;
-          if (status === 403 && name === 'NOT_USER') {
-            message.error('用户不存在~');
-          } else if (status === 403 && name === 'PASSWORD_ERROR') {
-            message.error('密码不正确~');
-          } else {
-            message.error('服务器开小差了，请稍后重试~');
-          }
+          message.error('服务器开小差了，请稍后重试~');
         });
     });
   }
