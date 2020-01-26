@@ -2,6 +2,8 @@ import './form.less';
 import React, { useState, Fragment, useEffect, } from 'react';
 import fetch from '../../fetch';
 import { Form, Input, Icon, Button, Checkbox, Drawer, Row, Col, message, } from 'antd';
+const JSEncrypt = require("jsencrypt");
+const encrypt = new JSEncrypt.JSEncrypt();
 const { Item, } = Form;
 let hasInputConfirm = false;
 enum validateStatus {
@@ -17,6 +19,12 @@ interface StatusType {
   nick_name: StatuType;
   account: StatuType;
   email: StatuType;
+}
+interface SubmitType {
+  nick_name: string;
+  account: string;
+  password: string;
+  email: string;
 }
 const RegisterForm = (props: any) => {
   const [hasRead, setHasRead] = useState<boolean>(false);
@@ -105,34 +113,50 @@ const RegisterForm = (props: any) => {
   // 提交
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    form.validateFields((err: any, values: Object) => {
+    form.validateFields((err: any, values: SubmitType) => {
       if (err) {
         console.log(values);
         return;
       }
       fetch({
-        url: '/api/user/sign',
-        body: values,
-        method: 'post',
+        url: '/api/user/key',
+        body: {},
+        method: 'get',
       })
         .then(res => {
           const { data, } = res;
-          if (data === true) {
-            message.error('恭喜您！注册成功~');
-          }
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1000);
+          encrypt.setPublicKey(data);
+          const encrypted = encrypt.encrypt(values.password);
+          fetch({
+            url: '/api/user/sign',
+            body: {
+              ...values,
+              password: encrypted,
+            },
+            method: 'post',
+          })
+            .then(res => {
+              const { data, } = res;
+              if (data === true) {
+                message.error('恭喜您！注册成功~');
+              }
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 1000);
+            })
+            .catch(err => {
+              const { status, name, } = err;
+              if (status === 400) {
+                message.error('注册的信息错误，请您检查后重新填写~');
+              } else {
+                message.error('服务器开小差了，请稍后重试~');
+              }
+            });
         })
         .catch(err => {
-          const { status, name, } = err;
-          if (status === 400) {
-            message.error('注册的信息错误，请您检查后重新填写~');
-          }else {
-            message.error('服务器开小差了，请稍后重试~');
-          }
+          message.error('服务器开小差了，请稍后重试~');
         });
-    })
+    });
   }
 
   // 切换是否选中已经阅读
